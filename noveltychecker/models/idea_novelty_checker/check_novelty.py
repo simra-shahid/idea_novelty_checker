@@ -43,10 +43,10 @@ async def get_review(idea, most_relevant_papers, incontext_example_path=None):
         incontext_example = open(incontext_example_path, "r")
 
     if os.getenv("NOVELTY_CHECK_EXAMPLES")=="less-relaxed":
-        incontext_example = open("noveltychecker/models/scideator/incontext_examples/less-relaxed.json", "r")
+        incontext_example = open("noveltychecker/models/idea_novelty_checker/incontext_examples/less-relaxed.json", "r")
 
     elif os.getenv("NOVELTY_CHECK_EXAMPLES")=="relaxed":
-        incontext_example = open("noveltychecker/models/scideator/incontext_examples/relaxed.json", "r")
+        incontext_example = open("noveltychecker/models/idea_novelty_checker/incontext_examples/relaxed.json", "r")
     else:
         raise ValueError("Invalid incontext example file path.")
     
