@@ -1,0 +1,1 @@
+"""Scideator model package init."""
