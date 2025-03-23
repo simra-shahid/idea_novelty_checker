@@ -1,0 +1,14 @@
+numpy
+pandas
+openai
+anthropic
+aiohttp
+requests
+scikit-learn
+sentence-transformers
+transformers
+retry
+litellm
+adapters
+nest_asyncio
+python-dotenv

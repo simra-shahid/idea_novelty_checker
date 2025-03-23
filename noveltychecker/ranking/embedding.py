@@ -5,11 +5,11 @@ from transformers import AutoTokenizer
 from adapters import AutoAdapterModel
 import torch 
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = AutoTokenizer.from_pretrained('allenai/specter2_base')
 model = AutoAdapterModel.from_pretrained('allenai/specter2_base')
 model.load_adapter("allenai/specter2", source="hf", load_as="specter2", set_active=True)
-model.to(DEVICE)  
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)  
 
 class Specter2Embedding:
     def __init__(self):
@@ -39,7 +39,7 @@ class Specter2Embedding:
             return_tensors="pt",
             return_token_type_ids=False,
             max_length=512
-        ).to(DEVICE)
+        ).to(device)
         with torch.no_grad():
             output = self.model(**inputs)
         embeddings_tensor = output.last_hidden_state[:, 0, :]

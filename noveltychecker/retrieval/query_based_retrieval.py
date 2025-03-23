@@ -43,7 +43,7 @@ async def get_keywords(input_string):
     output, _ = await client.a_chat(
         model=os.getenv("DEFAULT_MODEL"), 
         messages=combined_prompt, 
-        temperature=os.getenv("DEFAULT_TEMPERATURE", 0)
+        temperature=float(os.getenv("DEFAULT_TEMPERATURE", 0))
     )
     keywords, titles = parse_keyword_response(output)
 
@@ -73,7 +73,7 @@ async def get_query_based_papers_helper(idea):
     snippet_papers = {}
     idea_keywords = []
     title_keywords = []
-    search_type = os.getenv("query_retrieval_method")
+    search_type = os.getenv("QUERY_RETRIEVAL_METHOD")
 
     if search_type =="keyword+title" or search_type=="keyword+title+snippet":
         current_search_type = "keyword"
@@ -106,5 +106,5 @@ async def get_query_based_papers_helper(idea):
 
 if __name__ == "__main__":
     idea = "Hierarchical Topic Models (HTMs) are useful for discovering topic hierarchies in a collection of documents. However, traditional HTMs often produce hierarchies where lowerlevel topics are unrelated and not specific enough to their higher-level topics. Additionally, these methods can be computationally expensive. We present HyHTM - a Hyperbolic geometry based Hierarchical Topic Models - that addresses these limitations by incorporating hierarchical information from hyperbolic geometry to explicitly model hierarchies in topic models. Experimental results with four baselines show that HyHTM can better attend to parent-child relationships among topics. HyHTM produces coherent topic hierarchies that specialise in granularity from generic higher-level topics to specific lowerlevel topics. Further, our model is significantly faster and leaves a much smaller memory footprint than our best-performing baseline.We have made the source code for our algorithm publicly accessible."
-    papers = asyncio.run(getMorePapersSimilarToIdea(idea))
+    papers = asyncio.run(get_query_based_papers_helper(idea))
     print("len(papers): ", len(papers))

@@ -69,7 +69,8 @@ async def get_review(idea, most_relevant_papers, incontext_example_path=None):
     category, review = parse_output(output_text, delim_class, delim_review)
     if category is None or review is None:
         return None, None, output_text
-    
+    category = category.strip("-").strip(" ")
+    review = review.strip("-").strip(" ")
     return category, review, output_text
 
 if __name__=="__main__": 

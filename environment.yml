@@ -16,21 +16,8 @@ dependencies:
       - sentence_transformers 
       - transformers
       - retry
+      - litellm
       - adapters
-variables:
-  OPENAI_API_KEY: "insert openai key"
-  ANTHROPIC_API_KEY: "insert anthropic key"
-  S2_API_KEY: "insert s2 key"
-  NOVELTY_CHECK_TOPkPapers: 10
-  NOVELTY_CHECK_MODEL: "gpt-4o"
-  NOVELTY_CHECK_TEMPERATURE: 0 
-  NOVELTY_CHECK_PROMPT: "relaxed"
-  NOVELTY_CHECK_EXAMPLES: "relaxed"
-  STYLE_CHANGE_MODEL: "o3-mini"
-  RANKGPT_MODEL: "gpt-4o"
-  RANKGPT_TEMPERATURE: 0
-  DEFAULT_MODEL: "gpt-4o" # for extracting keywords, priority facets
-  DEFAULT_TEMPERATURE: 0
-  query_retrieval_method: "keyword+title+snippet"  #options: "snippet", "keyword+title", "keyword+title+snippet"
-
-
+      - nest_asyncio
+      - python-dotenv
+  

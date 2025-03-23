@@ -1,8 +1,6 @@
-
 from noveltychecker.models.idea_novelty_checker.check_novelty import get_review
 from noveltychecker.models.idea_novelty_checker.paper_collection import get_most_relevant_papers
 from noveltychecker.utils.s2_api import get_paper_data
-
 import asyncio, os
 from tqdm import tqdm 
 import pandas as pd 
@@ -20,8 +18,14 @@ async def get_review_helper(evaluation_papers):
     return category, review, output_text
 
 async def run_ideanoveltychecker(
-    idea, input_most_relevant_papers=None, use_retrieval=True, seed_paper_ids=[], seed_paper_path=None, novelty_model="gpt-4o", ablation=True
+    idea, use_retrieval=True, input_papers_ids=[], input_papers=None, ablation=False
 ):  
+    """
+    idea: Idea string. Check prefered format in incontext examples. 
+    use_retrieval: If True, will find more papers similar to idea from s2 
+    input_papers: list of paperIds which are important for consideration in most relevant set
+    ablation: computes novelty with different components (original, without RankGPT, without embeddings, snippet only, keyword only). For BaseRankGPT, we have to change 
+    """
     
     seed_papers = {}
     retrieval_trace = {
@@ -29,29 +33,41 @@ async def run_ideanoveltychecker(
         "title_keywords" : [],
         "idea_priority_facets" : "",
         "most_relevant_papers" : [],
-        "most_relevant_papers_withoutRankGPT" : [],
+        "embedding_ranked" : [],
         "snippet_papers" : [], 
-        "keyword_papers" : [] 
+        "keyword_papers" : [], 
     }
 
     
     limit = int(os.getenv("NOVELTY_CHECK_TOPkPapers", 10))
 
-    if seed_paper_ids:
-        seed_papers = await get_seed_papers(seed_paper_ids, seed_paper_path)
-   
+    input_papers = []
+    if len(input_papers_ids)!=0 and input_papers is None: 
+        # This will be considered in re-ranking step if use_retrieval is true. 
+        # If you want to force this to be in top k papers, then see groundtruth_and_retrieved
+        input_papers = await get_paper_data(input_papers_ids, id_type="paper_id", batch_wise=True)
+        input_papers = pd.DataFrame(input_papers)
+    elif input_papers is not None:
+        #if isinstance(input_papers, pd.DataFrame):
+        #    retrieval_trace["input_most_relevant_papers"] = input_papers
+        if isinstance(input_papers, list):
+            input_papers = pd.DataFrame(input_papers)
+            #retrieval_trace["input_most_relevant_papers"] = input_papers
+    else:
+        #no input papers
+        pass
+        
     if use_retrieval==True: 
         retrieval_trace = await get_most_relevant_papers(
-        idea, seed_papers, model="gpt-4o", total_limit=10 
+        idea, input_papers, max_papers_specter=100
     )
 
-    retrieval_trace["input_most_relevant_papers"] = input_most_relevant_papers
-    
+    retrieval_trace["input_most_relevant_papers"] = input_papers
+
     output = {
         "input": {
             "idea": idea, 
-            "seed_paper_ids": seed_paper_ids,
-            "seed_paper_path": seed_paper_path,
+            "input_papers_ids": input_papers_ids,
             "use_retrieval": use_retrieval, 
 
         }, 
@@ -60,16 +76,19 @@ async def run_ideanoveltychecker(
     }
 
     most_relevant_papers = retrieval_trace['most_relevant_papers'].copy()
-    snippet_only_ablation = most_relevant_papers[most_relevant_papers['source'].apply(lambda x: True if 'snippet' in x else False)]
-    keyword_papers_ablation = most_relevant_papers[most_relevant_papers['source'].apply(lambda x: True if 'keyword' in x else False)]
-
+    
     if ablation:
+        snippet_only_ablation = most_relevant_papers[most_relevant_papers['source'].apply(lambda x: True if 'snippet' in x else False)]
+        keyword_papers_ablation = most_relevant_papers[most_relevant_papers['source'].apply(lambda x: True if 'keyword' in x else False)]
+
         experiments = [
                     ("default", retrieval_trace['most_relevant_papers'][:limit]), 
                     ("snippet_only", snippet_only_ablation[:limit]),
                     ("keyword_only", keyword_papers_ablation[:limit]), 
                     ("norankGPT", retrieval_trace['embedding_ranked'][:limit]), 
-                    ("groundtruth_only", input_most_relevant_papers[:limit] if input_most_relevant_papers is not None else []), 
+                    ("groundtruth_only", retrieval_trace["input_most_relevant_papers"][:limit] if (len(retrieval_trace["input_most_relevant_papers"])!=0) is not None else []), 
+                    ("groundtruth_and_retrieved", pd.concat([retrieval_trace["input_most_relevant_papers"],  retrieval_trace['most_relevant_papers']])[:limit] if (len(retrieval_trace["input_most_relevant_papers"])!=0) and (len(retrieval_trace['most_relevant_papers'])!=0) else []), 
+
                  ]
     else:
         if use_retrieval:
@@ -78,10 +97,13 @@ async def run_ideanoveltychecker(
             ]
         else:
             experiments = [
-                        ("groundtruth_only", input_most_relevant_papers[:limit] if input_most_relevant_papers is not None else [])
+                        ("groundtruth_only", retrieval_trace["input_most_relevant_papers"][:limit] if retrieval_trace["input_most_relevant_papers"] is not None else [])
             ]
 
     for experiment_type, evaluation_papers in tqdm(experiments, total=len(experiments), desc='running_experiments...'):
+        
+        if len(evaluation_papers)==0: 
+            continue 
             
         category, review, output_text = "", "", ""
         
@@ -89,13 +111,12 @@ async def run_ideanoveltychecker(
             category, review, output_text = await get_review(
                 idea=idea, 
                 most_relevant_papers=evaluation_papers, 
-                novelty_model=novelty_model
             )
         try: 
             evaluation_papers.drop(["embedding"], axis=1, inplace=True)
         except: 
             pass 
-            
+        
         output["output"][experiment_type] = {
             "evaluation_papers": evaluation_papers.to_dict(orient="records"), 
             "category": category, 
@@ -108,41 +129,6 @@ async def run_ideanoveltychecker(
 
 
 
-async def get_seed_papers(seed_paper_ids, file_path=None):
-
-    if not os.path.exists(file_path):
-        batch_size = 15        
-        total_batches = math.ceil(len(seed_paper_ids) / batch_size)
-        seed_papers = {} 
-        i = 0 
-        while i < len(seed_paper_ids): 
-
-            batch = seed_paper_ids[i : i + batch_size] 
-            batch_papers = await get_paper_data(batch, id_type="paper_id", batch_wise=True)
-            if not batch_papers: 
-                continue 
-
-            if isinstance(batch_papers, list):
-                batch_dict = {}
-                for paper in batch_papers:
-                    # paper might be None or missing "paperId"
-                    if paper and isinstance(paper, dict):
-                        pid = paper.get("corpusId")
-                        if pid:
-                            batch_dict[pid] = paper
-                seed_papers.update(batch_dict)
-            else:
-                print(f"[WARNING] Unexpected data type returned: {type(batch_papers)}. Skipping batch.")
-            
-            print(f"Processed batch starting at index {i}. Total seed papers so far: {len(seed_papers)}")
-            i += batch_size
-        
-        
-        json.dump(seed_papers, open(file_path, "w")) 
-    else: 
-        seed_papers = json.load(open(file_path, "r"))
-
-    return seed_papers
 
 
 if __name__ == "__main__":

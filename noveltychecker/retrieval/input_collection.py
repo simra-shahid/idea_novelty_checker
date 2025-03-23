@@ -1,20 +1,19 @@
 import asyncio
-
+from typing import List
 from noveltychecker.utils.s2_api import (
      papers_from_recommendation_api_allCs,
      papers_from_recommendation_api_recent
 )
-from noveltychecker.noveltychecker.ranking.embedding import get_embeddings_ideapapers
 
-async def getMorePapersSimilarToCorpus(corpusIds: str):
+async def get_papers_similar_to_input_papers(corpusIds: List[str]):
 
     if not corpusIds:
-        return []
+        return {}
 
-    input_corpus_id_list = [c.strip() for c in corpusIds.split(",") if c.strip()]
+    #input_corpus_id_list = [c.strip() for c in corpusIds.split(",") if c.strip()]
 
     all_papers = []
-    for corpus_id in input_corpus_id_list:
+    for corpus_id in corpusIds:
         papers = await papers_from_recommendation_api_allCs(corpus_id)
         if papers.get("recommendedPapers"):
             all_papers.extend(papers["recommendedPapers"])
@@ -22,10 +21,14 @@ async def getMorePapersSimilarToCorpus(corpusIds: str):
         if papers.get("recommendedPapers"):
             all_papers.extend(papers["recommendedPapers"])
 
-    all_papers = await get_embeddings_ideapapers(all_papers)
+    all_papers = {
+            str(paper["corpusId"]): {k: v for k, v in paper.items()}
+            for paper in all_papers
+        }
+
     return all_papers
 
 
 
 if __name__ == "__main__":
-    print(asyncio.run(getMorePapersSimilarToCorpus("258714603")))
+    print(asyncio.run(get_papers_similar_to_input_papers(["258714603"])))

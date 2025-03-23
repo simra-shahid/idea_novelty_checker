@@ -9,7 +9,7 @@ async def get_review(
         idea,
         input_papers = None,
         max_num_iterations=10, 
-        use_inbuilt_retrieval=True
+        use_retrieval=True
 ):
     
     model = os.getenv("NOVELTY_CHECK_MODEL") 
@@ -82,7 +82,7 @@ async def get_review(
                       
                     )
 
-            if use_inbuilt_retrieval:
+            if use_retrieval:
             ################################################
                 for i, paper in enumerate(papers['data']):
                     paper_strings.append(

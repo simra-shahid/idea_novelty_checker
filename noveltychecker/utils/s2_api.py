@@ -81,3 +81,42 @@ async def papers_from_recommendation_api_recent(corpus_id=None, limit=100):
 async def getSpecterEmbedding_paperIDs(paperIDs):
     url = "https://api.semanticscholar.org/graph/v1/paper/batch"
     return await make_request_with_retries(url, headers={"x-api-key":os.getenv("S2_API_KEY")}, params={"fields": "corpusId,embedding"}, input_json={"ids": paperIDs}, request_type="post", url_string='Specter Embeddings') 
+
+
+"""
+async def get_papers_data(seed_paper_ids, file_path=None):
+
+    if not os.path.exists(file_path):
+        batch_size = 15        
+        total_batches = math.ceil(len(seed_paper_ids) / batch_size)
+        seed_papers = {} 
+        i = 0 
+        while i < len(seed_paper_ids): 
+
+            batch = seed_paper_ids[i : i + batch_size] 
+            batch_papers = await get_paper_data(batch, id_type="paper_id", batch_wise=True)
+            if not batch_papers: 
+                continue 
+
+            if isinstance(batch_papers, list):
+                batch_dict = {}
+                for paper in batch_papers:
+                    # paper might be None or missing "paperId"
+                    if paper and isinstance(paper, dict):
+                        pid = paper.get("corpusId")
+                        if pid:
+                            batch_dict[pid] = paper
+                seed_papers.update(batch_dict)
+            else:
+                print(f"[WARNING] Unexpected data type returned: {type(batch_papers)}. Skipping batch.")
+            
+            print(f"Processed batch starting at index {i}. Total seed papers so far: {len(seed_papers)}")
+            i += batch_size
+        
+        
+        json.dump(seed_papers, open(file_path, "w")) 
+    else: 
+        seed_papers = json.load(open(file_path, "r"))
+
+    return seed_papers
+"""
