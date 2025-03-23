@@ -2,8 +2,8 @@ import os
 import yaml
 from dotenv import load_dotenv
 
-def load_env(config_path: str = "config.yml"):
 
+def load_env(config_path: str = "config.yml"):
 
     if os.path.exists(config_path):
         with open(config_path, "r") as file:

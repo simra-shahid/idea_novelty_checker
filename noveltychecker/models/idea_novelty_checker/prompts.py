@@ -1,4 +1,6 @@
-def prompt_NoveltyChecker_allowsIncrementalNovelty(idea, similar_documents, incontext_part):
+def prompt_NoveltyChecker_allowsIncrementalNovelty(
+    idea, similar_documents, incontext_part
+):
     relevant_papers = []
     for i, (_, row) in enumerate(similar_documents.iterrows()):
         relevant_papers.append(
@@ -53,7 +55,9 @@ def prompt_NoveltyChecker_allowsIncrementalNovelty(idea, similar_documents, inco
     return prompt
 
 
-def prompt_NoveltyChecker_allowsIncrementalNovelty_lessRelaxed(idea, similar_documents, incontext_part):
+def prompt_NoveltyChecker_allowsIncrementalNovelty_lessRelaxed(
+    idea, similar_documents, incontext_part
+):
     relevant_papers = []
     for i, (_, row) in enumerate(similar_documents.iterrows()):
         relevant_papers.append(
@@ -116,4 +120,3 @@ def prompt_NoveltyChecker_allowsIncrementalNovelty_lessRelaxed(idea, similar_doc
     prompt.extend(instruction)
 
     return prompt
-

@@ -10,16 +10,16 @@ import nest_asyncio
 
 nest_asyncio.apply()
 
+
 async def get_keywords(input_string):
 
     combined_prompt = prompt_PaperRetrieval_Keywords(input_string)
-    
-    
+
     def parse_keyword_response(output):
         keyword_match = re.search(r"<keywords>(.*?)</keywords>", output, re.DOTALL)
-        
+
         title_match = re.search(r"<titles>(.*?)</titles>", output, re.DOTALL)
-        
+
         keywords = []
         titles = []
 
@@ -38,35 +38,39 @@ async def get_keywords(input_string):
                 pass
 
         return keywords, titles
-        
+
     client = get_llm_client(os.getenv("DEFAULT_MODEL"))
     output, _ = await client.a_chat(
-        model=os.getenv("DEFAULT_MODEL"), 
-        messages=combined_prompt, 
-        temperature=float(os.getenv("DEFAULT_TEMPERATURE", 0))
+        model=os.getenv("DEFAULT_MODEL"),
+        messages=combined_prompt,
+        temperature=float(os.getenv("DEFAULT_TEMPERATURE", 0)),
     )
     keywords, titles = parse_keyword_response(output)
 
     return keywords, titles
-    
-async def fetch_papers_for_query(query, search_type, limit):         
-        output = await papers_from_search_api(query, search_type=search_type, limit=limit)
-        if output.get("data") is None:
-            return []
-        return output['data']
 
+
+async def fetch_papers_for_query(query, search_type, limit):
+    output = await papers_from_search_api(query, search_type=search_type, limit=limit)
+    if output.get("data") is None:
+        return []
+    return output["data"]
 
 
 async def limited_get_paper_data(corpus_id, semaphore):
     async with semaphore:
         return await get_paper_data(corpus_id)
 
+
 async def run_all_queries(corpus_ids):
-    semaphore = asyncio.Semaphore(5)  
-    tasks = [asyncio.create_task(limited_get_paper_data(corpus_id, semaphore))
-             for corpus_id in corpus_ids]
+    semaphore = asyncio.Semaphore(5)
+    tasks = [
+        asyncio.create_task(limited_get_paper_data(corpus_id, semaphore))
+        for corpus_id in corpus_ids
+    ]
     results = await asyncio.gather(*tasks)
     return results
+
 
 async def get_query_based_papers_helper(idea):
     keyword_papers = []
@@ -75,32 +79,38 @@ async def get_query_based_papers_helper(idea):
     title_keywords = []
     search_type = os.getenv("QUERY_RETRIEVAL_METHOD")
 
-    if search_type =="keyword+title" or search_type=="keyword+title+snippet":
+    if search_type == "keyword+title" or search_type == "keyword+title+snippet":
         current_search_type = "keyword"
         idea_keywords, title_keywords = await get_keywords(input_string=idea)
         search_queries = idea_keywords + title_keywords
 
-        results = await asyncio.gather(*[fetch_papers_for_query(query, current_search_type, limit=100) for query in search_queries])
+        results = await asyncio.gather(
+            *[
+                fetch_papers_for_query(query, current_search_type, limit=100)
+                for query in search_queries
+            ]
+        )
         for result in results:
             if result:
                 keyword_papers.extend(result)
 
-    if search_type =="snippet" or search_type=="keyword+title+snippet":
+    if search_type == "snippet" or search_type == "keyword+title+snippet":
         current_search_type = "snippet"
-        snippet_papers_temp = await fetch_papers_for_query(idea, current_search_type, limit=100)
-        corpus_IDs = [paper['paper']['corpusId'] for paper in snippet_papers_temp]
+        snippet_papers_temp = await fetch_papers_for_query(
+            idea, current_search_type, limit=100
+        )
+        corpus_IDs = [paper["paper"]["corpusId"] for paper in snippet_papers_temp]
         snippet_papers = asyncio.run(run_all_queries(corpus_IDs))
-
 
     snippet_papers = await get_embeddings_ideapapers(snippet_papers)
     keyword_papers = await get_embeddings_ideapapers(keyword_papers)
-    
+
     return {
-        "search_type": search_type, 
-        "snippet_papers": snippet_papers, 
-        "keyword_papers": keyword_papers, 
-        "idea_keywords": idea_keywords, 
-        "title_keywords": title_keywords
+        "search_type": search_type,
+        "snippet_papers": snippet_papers,
+        "keyword_papers": keyword_papers,
+        "idea_keywords": idea_keywords,
+        "title_keywords": title_keywords,
     }
 
 

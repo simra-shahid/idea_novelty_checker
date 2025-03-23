@@ -1,6 +1,6 @@
 """
 This code is taken from RankGPT (https://github.com/sunnweiwei/RankGPT)
-It's optimized to do some calls asynchronously. 
+It's optimized to do some calls asynchronously.
 """
 
 import copy, os
@@ -10,7 +10,13 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from noveltychecker.utils.prompts import prompt_RankGPT_IdeaPriority, prompt_RankGPT_postRanking, prompt_RankGPT_postRankingPurpose, prompt_RankGPT_prefixRanking, prompt_RankGPT_prefixRankingPriority
+from noveltychecker.utils.prompts import (
+    prompt_RankGPT_IdeaPriority,
+    prompt_RankGPT_postRanking,
+    prompt_RankGPT_postRankingPurpose,
+    prompt_RankGPT_prefixRanking,
+    prompt_RankGPT_prefixRankingPriority,
+)
 from noveltychecker.utils.model_client import OpenaiClient, ClaudeClient, LitellmClient
 
 
@@ -92,7 +98,7 @@ async def create_permutation_instruction(
     rank_end=100,
     model_name="gpt-4o",
     idea_match_type="base",
-    idea_priority_facets = []
+    idea_priority_facets=[],
 ):
     query = item["query"]
     num = len(item["hits"][rank_start:rank_end])
@@ -107,14 +113,16 @@ async def create_permutation_instruction(
         content = content.strip()
         content = " ".join(content.split()[: int(max_length)])
         document_messages.append({"role": "user", "content": f"[{rank}] {content}"})
-        document_messages.append({"role": "assistant", "content": f"Received passage [{rank}]."})
-        
-    
+        document_messages.append(
+            {"role": "assistant", "content": f"Received passage [{rank}]."}
+        )
 
     if idea_match_type == "base":
         messages = prompt_RankGPT_prefixRanking(query, num)
         messages.extend(document_messages)
-        messages.append({"role": "user", "content": prompt_RankGPT_postRanking(query, num)})
+        messages.append(
+            {"role": "user", "content": prompt_RankGPT_postRanking(query, num)}
+        )
 
     elif idea_match_type == "purpose":
         messages = prompt_RankGPT_prefixRanking(query, num)
@@ -122,15 +130,23 @@ async def create_permutation_instruction(
         messages.append(
             {"role": "user", "content": prompt_RankGPT_postRankingPurpose(query, num)}
         )
-    
+
     elif idea_match_type == "priority":
-        messages = prompt_RankGPT_prefixRankingPriority(query, idea_priority_facets, num)
+        messages = prompt_RankGPT_prefixRankingPriority(
+            query, idea_priority_facets, num
+        )
         messages.extend(document_messages)
         messages.append(
-            {"role": "user", "content": prompt_RankGPT_IdeaPriority(query, idea_priority_facets, num)}
+            {
+                "role": "user",
+                "content": prompt_RankGPT_IdeaPriority(
+                    query, idea_priority_facets, num
+                ),
+            }
         )
-    
+
     return messages
+
 
 async def run_llm(messages, model_name="gpt-4o"):
     if "gpt" in model_name:
@@ -198,8 +214,8 @@ async def permutation_pipeline(
     rank_end=100,
     model_name="gpt-4o",
     idea_match_type="base",
-    idea_priority_facets = []
-):  
+    idea_priority_facets=[],
+):
     messages = []
     messages = await create_permutation_instruction(
         item=item,
@@ -207,7 +223,7 @@ async def permutation_pipeline(
         rank_end=rank_end,
         model_name=model_name,
         idea_match_type=idea_match_type,
-        idea_priority_facets = idea_priority_facets
+        idea_priority_facets=idea_priority_facets,
     )
 
     permutation = await run_llm(messages, model_name=model_name)
@@ -226,7 +242,7 @@ async def sliding_windows(
     step=10,
     model_name="gpt-4o",
     idea_match_type="base",
-    idea_priority_facets = []
+    idea_priority_facets=[],
 ):
     item = copy.deepcopy(item)
     end_pos = rank_end
@@ -244,7 +260,7 @@ async def sliding_windows(
                 rank_end=end_pos,
                 model_name=model_name,
                 idea_match_type=idea_match_type,
-                idea_priority_facets = idea_priority_facets
+                idea_priority_facets=idea_priority_facets,
             )
         )
 
@@ -270,7 +286,9 @@ def write_eval_file(rank_results, file):
     return True
 
 
-async def rank_gpt_filter(item, most_similar_documents, model, idea_match_type, ideafacets = []):
+async def rank_gpt_filter(
+    item, most_similar_documents, model, idea_match_type, ideafacets=[]
+):
 
     new_item = await sliding_windows(
         item,
@@ -278,7 +296,7 @@ async def rank_gpt_filter(item, most_similar_documents, model, idea_match_type, 
         rank_end=len(most_similar_documents),
         model_name=model,
         idea_match_type=idea_match_type,
-        idea_priority_facets = ideafacets
+        idea_priority_facets=ideafacets,
     )
     content_to_new_order = {
         hit["content"]: index for index, hit in enumerate(new_item["hits"])

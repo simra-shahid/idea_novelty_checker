@@ -20,29 +20,49 @@ class OpenaiClient(BaseLLMClient):
             self.keys = [keys]
         else:
             self.keys = keys
-        self.key_id = 0 
+        self.key_id = 0
         self.api_key = self.keys[self.key_id]
         self.client = OpenAI(api_key=self.api_key)
 
-    def chat(self, messages, system_message=None, return_text=True, reduce_length=False, return_history=False, msg_history=[], *args, **kwargs):
+    def chat(
+        self,
+        messages,
+        system_message=None,
+        return_text=True,
+        reduce_length=False,
+        return_history=False,
+        msg_history=[],
+        *args,
+        **kwargs,
+    ):
         completion = ""
         new_msg = []
         try:
-            if len(msg_history)!=0:
-                
-                new_msg = msg_history +  [{"role": "assistant", "content": messages}] if isinstance(messages, str) else msg_history + messages
+            if len(msg_history) != 0:
+
+                new_msg = (
+                    msg_history + [{"role": "assistant", "content": messages}]
+                    if isinstance(messages, str)
+                    else msg_history + messages
+                )
 
                 completion = self.client.chat.completions.create(
                     messages=[
                         {"role": "system", "content": system_message},
                         *new_msg,
-                    ], 
-                    *args, **kwargs, timeout=60
-                )                    
+                    ],
+                    *args,
+                    **kwargs,
+                    timeout=60,
+                )
             else:
                 if system_message:
-                    new_msg = [{"role": "assistant", "content": messages}] if isinstance(messages, str) else messages
-                    messages=[
+                    new_msg = (
+                        [{"role": "assistant", "content": messages}]
+                        if isinstance(messages, str)
+                        else messages
+                    )
+                    messages = [
                         {"role": "system", "content": system_message},
                         *new_msg,
                     ]
@@ -55,16 +75,14 @@ class OpenaiClient(BaseLLMClient):
             print(e)
 
         if return_text:
-            if completion!="":
+            if completion != "":
                 completion = completion.choices[0].message.content
-        
-        if return_history: 
+
+        if return_history:
             new_msg = new_msg + [{"role": "assistant", "content": completion}]
             return completion, new_msg
-        
+
         return completion, None
-
-
 
     def text(self, *args, return_text=True, reduce_length=False, **kwargs):
         try:
@@ -78,34 +96,42 @@ class OpenaiClient(BaseLLMClient):
         return completion
 
     async def a_chat(self, *args, **kwargs):
-        return await asyncio.to_thread(
-            self.chat, *args, **kwargs
-        )
+        return await asyncio.to_thread(self.chat, *args, **kwargs)
 
     async def a_text(self, *args, **kwargs):
-        return await asyncio.to_thread(
-            self.text, *args, **kwargs
-        )
+        return await asyncio.to_thread(self.text, *args, **kwargs)
 
 
 class ClaudeClient(BaseLLMClient):
     def __init__(self, key):
-        
+
         self.client = Anthropic(api_key=key)
 
-
-    def chat(self, messages, return_text=True, return_history=False, msg_history = [], max_tokens=300, *args, **kwargs):
+    def chat(
+        self,
+        messages,
+        return_text=True,
+        return_history=False,
+        msg_history=[],
+        max_tokens=300,
+        *args,
+        **kwargs,
+    ):
         system = " ".join(
             [turn["content"] for turn in messages if turn["role"] == "system"]
         )
         messages = [turn for turn in messages if turn["role"] != "system"]
         if len(system) == 0:
             system = None
-        
-        if len(msg_history)!=0:
+
+        if len(msg_history) != 0:
             new_msg_history = msg_history + messages
             completion = self.client.beta.messages.create(
-                messages=new_msg_history, system=system, max_tokens=max_tokens, *args, **kwargs
+                messages=new_msg_history,
+                system=system,
+                max_tokens=max_tokens,
+                *args,
+                **kwargs,
             )
 
         else:
@@ -114,7 +140,7 @@ class ClaudeClient(BaseLLMClient):
             )
         if return_text:
             completion = completion.content[0].text
-        if return_history: 
+        if return_history:
             new_msg_history = new_msg_history + [
                 {
                     "role": "assistant",
@@ -137,23 +163,19 @@ class ClaudeClient(BaseLLMClient):
             completion = completion.completion
         return completion
 
-
     async def a_chat(self, *args, **kwargs):
-        return await asyncio.to_thread(
-            self.chat, *args, **kwargs
-        )
+        return await asyncio.to_thread(self.chat, *args, **kwargs)
 
     async def a_text(self, *args, **kwargs):
-        return await asyncio.to_thread(
-            self.text, *args, **kwargs
-        )
+        return await asyncio.to_thread(self.text, *args, **kwargs)
+
 
 class LitellmClient(BaseLLMClient):
     def __init__(self, key):
         self.api_key = key
 
     def chat(self, *args, return_text=True, **kwargs):
-        
+
         response = completion(api_key=self.api_key, *args, **kwargs)
         if return_text:
             return response.choices[0].message.content
@@ -166,7 +188,11 @@ class LitellmClient(BaseLLMClient):
 
 
 def get_llm_client(model_name):
-    if model_name.startswith("gpt") or model_name.startswith("o3-mini") or model_name.startswith("o1"):
+    if (
+        model_name.startswith("gpt")
+        or model_name.startswith("o3-mini")
+        or model_name.startswith("o1")
+    ):
         api_key = os.getenv("OPENAI_API_KEY")
         return OpenaiClient(api_key)
     elif model_name.startswith("claude"):
@@ -177,8 +203,3 @@ def get_llm_client(model_name):
         return LitellmClient(api_key)
     else:
         raise ValueError(f"Unsupported model name: {model_name}")
-
-
-
-
-

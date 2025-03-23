@@ -1,10 +1,9 @@
-
 def prompt_PaperRetrieval_Keywords(idea):
 
     prompt = [
         {
             "role": "system",
-            "content": "You are an intelligent assistant that extracts high-quality keywords and generates specific research paper titles based on the provided IDEA."
+            "content": "You are an intelligent assistant that extracts high-quality keywords and generates specific research paper titles based on the provided IDEA.",
         },
         {
             "role": "user",
@@ -37,17 +36,18 @@ def prompt_PaperRetrieval_Keywords(idea):
         {"role": "assistant", "content": "Sure, please provide the IDEA."},
         {"role": "user", "content": idea},
     ]
-    return prompt 
+    return prompt
+
 
 def prompt_RankGPT_IdeaFacets(idea):
 
     prompt = [
         {
-            "role": "system", 
-            "content":"You are Research Idea Reviewer GPT, an intelligent assistant that helps researchers evaluate the novelty of their ideas."
-        }, 
+            "role": "system",
+            "content": "You are Research Idea Reviewer GPT, an intelligent assistant that helps researchers evaluate the novelty of their ideas.",
+        },
         {
-            "role": "user", 
+            "role": "user",
             "content": """Your task is to extract key facets from a given idea to assist in re-ranking passages based on their relevance to the idea. These key facets should capture the essential elements of the idea, such as the application domain, purpose, mechanisms, methods, and evaluation metrics.
 
                 Instructions:
@@ -80,24 +80,24 @@ def prompt_RankGPT_IdeaFacets(idea):
                         - Method: Developing a hierarchical topic model with capsule networks capturing hierarchical structures.
                         - Evaluation: Validation on benchmark datasets (e.g., PASCAL VOC 2007 and 2012) using metrics like log-likelihood and topic coherence.
                 
-                """
-        }, 
+                """,
+        },
         {
             "role": "assistant",
             "content": "Sure, please provide the research idea",
         },
-        {   "role": "user", 
+        {
+            "role": "user",
             "content": f"""Here is the idea: <idea> {idea} </idea>. 
             Please provide Key Facets to Look for in Passages for the provided idea between <facets> </facets> tags. 
-            """
-        }
+            """,
+        },
     ]
-    return prompt 
+    return prompt
 
 
 def prompt_RankGPT_IdeaPriority(query, facets, number_of_passages):
-  
-    
+
     prompt2 = f"""**QUERY** Idea: {query}. **Key Facets from IDEA to Look for in Passages**: {facets}.
 
         Your task is to rank these {number_of_passages} passages based on their relevance to the QUERY IDEA and its provided facets using the following criteria, in order of priority:
@@ -114,10 +114,9 @@ def prompt_RankGPT_IdeaPriority(query, facets, number_of_passages):
         - Use passage identifiers (e.g., [1], [2], etc.) in your ranking.
         - Provide your ranking in the following format: [17] > [16] > [18] > [19] > [0].
         - Do not use any external knowledge or information not provided in the passages or the **QUERY** IDEA."""
-            
 
-    return prompt2 
-    
+    return prompt2
+
 
 def prompt_RankGPT_prefixRanking(query, num):
     return [
@@ -170,12 +169,11 @@ def prompt_RankGPT_prefixRankingPriority(query, idea_priority_facets, num):
             """,
         },
         {
-            "role": "assistant", 
-            "content": "Can you provide an example idea, facets and how to rank passages?"
+            "role": "assistant",
+            "content": "Can you provide an example idea, facets and how to rank passages?",
         },
-
         {
-            "role": "user", 
+            "role": "user",
             "content": """Here is an example: 
             
             Idea: Enhance topic model evaluation by incorporating anomaly detection machine learning techniques. The goal is to improve topic model evaluation by identifying and flagging anomalies within topic distributions that may indicate incoherence or redundancy. This approach provides a more robust evaluation framework that detects subtle inconsistencies that traditional metrics might miss. The effectiveness of this integrated evaluation method would be assessed through a systematic comparison and meta-analysis of different topic models, ensuring comprehensive and reliable evaluation outcomes.
@@ -236,10 +234,10 @@ def prompt_RankGPT_prefixRankingPriority(query, idea_priority_facets, num):
             Priority 5: Discusses anomaly detection in intrusion detection systems, less relevant to topic modeling.
             [9] A Robust Bayesian Probabilistic Matrix Factorization Model for Collaborative Filtering Recommender Systems Based on User Anomaly Rating Behavior Detection
             Priority 5: Focuses on anomaly detection in recommender systems, not directly related to topic modeling.
-            """
+            """,
         },
         {
-            "role": "user", 
+            "role": "user",
             "content": """Here is another example: 
             **Idea:** Develop a system that uses sentiment analysis to detect political bias in news articles. The system will analyze language patterns and sentiments to identify biased reporting, and will be validated using a dataset of news articles over the past decade.
 
@@ -261,8 +259,10 @@ def prompt_RankGPT_prefixRankingPriority(query, idea_priority_facets, num):
 
             [0] > [1] > [2]
             
-            """
+            """,
         },
-        {"role": "assistant", "content": "Okay, please provide the passages which I have to compare with **Query** Idea"},
+        {
+            "role": "assistant",
+            "content": "Okay, please provide the passages which I have to compare with **Query** Idea",
+        },
     ]
-

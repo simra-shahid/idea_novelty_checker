@@ -1,4 +1,3 @@
-
 novelty_system_msg = """You are an ambitious AI PhD student who is looking to publish a paper that will contribute significantly to the field.
 You have an idea and you want to check if it is novel or not. I.e., not overlapping significantly with existing literature or already well explored.
 Be a harsh critic for novelty, ensure there is a sufficient contribution in the idea for a new conference or workshop paper.
@@ -41,4 +40,3 @@ In <JSON>, respond in JSON format with ONLY the following field:
 
 A query will work best if you are able to recall the exact name of the paper you are looking for, or the authors.
 This JSON will be automatically parsed, so ensure the format is precise.'''
-

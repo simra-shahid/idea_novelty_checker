@@ -1,4 +1,5 @@
-import re, json 
+import re, json
+
 
 def extract_json_between_markers(llm_output):
     # Regular expression pattern to find JSON content between ```json and ```

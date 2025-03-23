@@ -1,16 +1,17 @@
 import asyncio
 from typing import List
 from noveltychecker.utils.s2_api import (
-     papers_from_recommendation_api_allCs,
-     papers_from_recommendation_api_recent
+    papers_from_recommendation_api_allCs,
+    papers_from_recommendation_api_recent,
 )
+
 
 async def get_papers_similar_to_input_papers(corpusIds: List[str]):
 
     if not corpusIds:
         return {}
 
-    #input_corpus_id_list = [c.strip() for c in corpusIds.split(",") if c.strip()]
+    # input_corpus_id_list = [c.strip() for c in corpusIds.split(",") if c.strip()]
 
     all_papers = []
     for corpus_id in corpusIds:
@@ -22,12 +23,10 @@ async def get_papers_similar_to_input_papers(corpusIds: List[str]):
             all_papers.extend(papers["recommendedPapers"])
 
     all_papers = {
-            str(paper["corpusId"]): {k: v for k, v in paper.items()}
-            for paper in all_papers
-        }
+        str(paper["corpusId"]): {k: v for k, v in paper.items()} for paper in all_papers
+    }
 
     return all_papers
-
 
 
 if __name__ == "__main__":
