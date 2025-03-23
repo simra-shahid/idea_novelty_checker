@@ -104,5 +104,3 @@ This configuration file (`config.yml`) defines key parameters for retrieving pap
 
 Contributions are welcome! If you encounter any issues or have ideas for improvement, please open an issue or submit a pull request.
 
----
-
