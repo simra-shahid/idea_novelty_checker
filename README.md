@@ -2,7 +2,7 @@
 
 Automated scientific idea generation systems have made remarkable progress, yet the automatic evaluation of idea novelty remains a critical and underexplored challenge. Manual evaluation of novelty through literature review is labor-intensive, prone to error due to subjectivity, and impractical at scale. To address these issues, we propose the **Idea Novelty Checker**, an LLM-based retrieval-augmented generation (RAG) framework that leverages a two-stage  retrieve-then-rerank approach. The **Idea Novelty Checker** first collects a broad set of relevant papers using keyword and snippet-based retrieval, then refines this collection through embedding-based filtering followed by facet-based LLM re-ranking. It incorporates expert-labeled examples to guide the system in comparing papers for novelty evaluation and in generating literature-grounded reasoning. This repository includes both the AI Scientist's novelty checker and our custom **Idea Novelty Checker** implementation. 
 
-📄 [Read the paper here!](assets/paper.pdf)
+[Read the paper here!](assets/paper.pdf)
 
 ![Figure](assets/image.png)
 
@@ -77,7 +77,7 @@ This configuration file (`config.yml`) defines key parameters for retrieving pap
 #### RankGPT Settings
 - RANKGPT_VARIANT (default: `"priority"`)  
   Defines how RankGPT measures the relevance of a paper to the idea. Options:
-  - `"base"`: Evaluates general relevance (same as original codebase of rankGPT: ![code](https://github.com/sunnweiwei/RankGPT)).
+  - `"base"`: Evaluates general relevance (same as original codebase of rankGPT: [code](https://github.com/sunnweiwei/RankGPT)).
   - `"purpose"`: Focuses on matching the primary purpose between the idea and the paper.
   - `"priority"`: Compares multiple idea facets—such as purpose, mechanism, evaluation, and application—with those in the paper.  
   *Default is `"priority"`.*
