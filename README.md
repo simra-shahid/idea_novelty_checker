@@ -43,6 +43,10 @@ Add `OPENAI_API_KEY` or `ANTHROPIC_AP_KEY` and `S2_API_KEY` in the config.yml fi
 python noveltychecker/utils/load_env.py
 ```
 
+### More Instructions 
+
+- The embedding-based reranking uses huggingface/allenai/specter2_base model. For low latency, run this novelty checker on a gpu. Incase, gpu is unavailable, one can use an API based embedding model (semantic scholar embedding api with specter-1) and change this in the reranker/embedding.py 
+
 ## Example Run
 
 To evaluate the novelty of a given scientific idea using AI Scientist and Idea Novelty Checker, run the following command. 
