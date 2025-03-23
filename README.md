@@ -62,45 +62,42 @@ python main.py --idea "Hierarchical Topic Models (HTMs) are useful for discoveri
 - **ablation** (`bool`, default=`False`)  
   When set to `True`, the novelty evaluation is performed for each paper collection & ordering method separately (snippet-only, keyword-only, embedding-only, and the combined embedding + rankGPT approach). By default, the papers are first collected using snippet and keyword search and any additional papers the user provides. These papers are reranked by embedding-based method (SPECTER-2) followed by an LLM-based reranker (rankGPT). 
 
-Below is the improved configuration section for your `config.yml`:
 
----
-
-### Idea Novelty Checker Config
+### Idea Novelty Checker config
 
 This configuration file (`config.yml`) defines key parameters for retrieving papers, ranking relevance with RankGPT, and evaluating idea novelty.
 
 #### Retrieval Settings
-- **QUERY_RETRIEVAL_METHOD** (default: `"keyword+title+snippet"`)  
+- QUERY_RETRIEVAL_METHOD (default: `"keyword+title+snippet"`)  
   Determines the strategy for retrieving relevant papers based on your input idea. Options:
-  - **`"snippet"`**: Retrieves literature snippets and corresponding papers with similar claims using Semantic Scholar's snippet API.
-  - **`"keyword+title"`**: Uses an LLM (`DEFAULT_MODEL`) to extract keywords and titles from the idea, then fetches papers using Semantic Scholar's query search API.
-  - **`"keyword+title+snippet"`**: Combines both approaches.
+  - `"snippet"`: Retrieves literature snippets and corresponding papers with similar claims using Semantic Scholar's snippet API.
+  - `"keyword+title"`: Uses an LLM (`DEFAULT_MODEL`) to extract keywords and titles from the idea, then fetches papers using Semantic Scholar's query search API.
+  - `"keyword+title+snippet"`: Combines both approaches.
 
 #### RankGPT Settings
-- **RANKGPT_VARIANT** (default: `"priority"`)  
+- RANKGPT_VARIANT (default: `"priority"`)  
   Defines how RankGPT measures the relevance of a paper to the idea. Options:
-  - **`"base"`**: Evaluates general relevance (same as original codebase of rankGPT: ![code](https://github.com/sunnweiwei/RankGPT)).
-  - **`"purpose"`**: Focuses on matching the primary purpose between the idea and the paper.
-  - **`"priority"`**: Compares multiple idea facets—such as purpose, mechanism, evaluation, and application—with those in the paper.  
+  - `"base"`: Evaluates general relevance (same as original codebase of rankGPT: ![code](https://github.com/sunnweiwei/RankGPT)).
+  - `"purpose"`: Focuses on matching the primary purpose between the idea and the paper.
+  - `"priority"`: Compares multiple idea facets—such as purpose, mechanism, evaluation, and application—with those in the paper.  
   *Default is `"priority"`.*
 
-- **RANKGPT_MODEL** (default: `"gpt-4o"`)
-- **RANKGPT_TEMPERATURE** (default: `0`)
+- RANKGPT_MODEL (default: `"gpt-4o"`)
+- RANKGPT_TEMPERATURE (default: `0`)
 
 #### Novelty Checker Settings
-- **NOVELTY_CHECK_TOPkPapers** (default: `10`)  
+- NOVELTY_CHECK_TOPkPapers (default: `10`)  
   Specifies the number of top-ranked papers that the final novelty checker prompt will evaluate.
-- **NOVELTY_CHECK_MODEL** (default: `"o3-mini"`)
-- **NOVELTY_CHECK_TEMPERATURE** (default: `0`)
-- **NOVELTY_CHECK_PROMPT** (default: `"relaxed"`)  
-- **NOVELTY_CHECK_EXAMPLES** (default: `"relaxed"`)
+- NOVELTY_CHECK_MODEL (default: `"o3-mini"`)
+- NOVELTY_CHECK_TEMPERATURE (default: `0`)
+- NOVELTY_CHECK_PROMPT (default: `"relaxed"`)  
+- NOVELTY_CHECK_EXAMPLES (default: `"relaxed"`)
 
 #### Other Settings
-- **DEFAULT_MODEL** (default: `"gpt-4o"`)  
+- DEFAULT_MODEL (default: `"gpt-4o"`)  
   Used for keyword/title generation from the idea and for extracting idea facets in the RankGPT step.
-- **DEFAULT_TEMPERATURE** (default: `0`)
-- **STYLE_CHANGE_MODEL** (default: `"o3-mini"`)  
+- DEFAULT_TEMPERATURE (default: `0`)
+- STYLE_CHANGE_MODEL (default: `"o3-mini"`)  
   This is not part of the novelty checker. It allows users to adjust the input idea style, similar to the in-context examples provided in our novelty prompt. You can select any model of your choice.
 
 ## Contributing
